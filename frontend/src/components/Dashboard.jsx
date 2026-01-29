@@ -130,7 +130,7 @@ function Dashboard() {
         <div className="gradient-bg p-8">
           <div className="flex justify-between items-start mb-6">
             <div>
-              <h1 className="text-4xl font-bold mb-2">Crypto_Swap AMM</h1>
+              <h1 className="text-4xl font-bold mb-2">Swap Saga AMM</h1>
               <p className="text-xl text-white/90">
                 Bidirectional Automated Market Maker on Base Sepolia
               </p>

@@ -80,7 +80,7 @@ function NetworkStatus() {
               <div className="flex-1">
                 <h3 className="font-semibold text-amber-300">Wrong Network</h3>
                 <p className="text-sm text-amber-200/80">
-                  Please switch to Base Sepolia (Chain ID: 84532) to use Crypto_Swap
+                  Please switch to Base Sepolia (Chain ID: 84532) to use Swap Saga
                 </p>
                 <p className="text-xs text-amber-200/60 mt-1">
                   Current network: {getNetworkName(network?.chainId?.toString())} (Chain ID: {network?.chainId?.toString()})

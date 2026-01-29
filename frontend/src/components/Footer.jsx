@@ -7,7 +7,7 @@ function Footer() {
       <div className="container mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-xl font-bold gradient-text mb-4">Crypto_Swap</h3>
+            <h3 className="text-xl font-bold gradient-text mb-4">Swap Saga</h3>
             <p className="text-gray-400">
               A bidirectional Automated Market Maker protocol built on Base Sepolia.
             </p>
@@ -47,7 +47,7 @@ function Footer() {
         <div className="border-t border-glass-border mt-8 pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between">
             <div className="text-gray-400 text-sm mb-4 md:mb-0">
-              © 2024 Crypto_Swap. All rights reserved. Running on Base Sepolia Testnet.
+              © 2024 Swap Saga. All rights reserved. Running on Base Sepolia Testnet.
             </div>
             
             <div className="flex space-x-4">

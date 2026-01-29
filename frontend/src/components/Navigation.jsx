@@ -25,7 +25,7 @@ function Navigation() {
               <Wallet className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold gradient-text">Crypto_Swap</h1>
+              <h1 className="text-2xl font-bold gradient-text">Swap Saga</h1>
               <p className="text-sm text-gray-400">Bidirectional AMM on Base Sepolia</p>
             </div>
           </div>
