@@ -1,0 +1,12 @@
+Deploying with: 0x6E7BD4A9c0b4695Dd21Bd7557A6C55AE4676CB1C
+TokenA deployed to: 0x1426DA8803cafC77c7B78329ED84d9477B380B6c
+TokenB deployed to: 0x40616A3e2C3c6868F455d92919253Ec1d48A4fF8
+Swap deployed to: 0x71237162c8DB4b52135caa2B6A9993e7d72Bbf52
+
+
+===============================================================
+>>
+Approved TokenA
+Approved TokenB
+
+===============================================================
