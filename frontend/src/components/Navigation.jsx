@@ -3,9 +3,9 @@ import { Link, useLocation } from 'react-router-dom'
 import { 
   Home, 
   RefreshCw,  // This is the swap icon in v0.263.1
-  PieChart, 
-  Wallet 
+  PieChart
 } from 'lucide-react'
+import Logo from '../assets/Logo.png' // Import your logo
 
 function Navigation() {
   const location = useLocation()
@@ -20,9 +20,14 @@ function Navigation() {
     <nav className="glass-card mx-4 mt-4 mb-8">
       <div className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 gradient-bg rounded-xl flex items-center justify-center">
-              <Wallet className="w-6 h-6 text-white" />
+          {/* Logo and Brand Section */}
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 rounded-xl overflow-hidden   shadow-lg">
+              <img 
+                src={Logo} 
+                alt="Crypto_Swap Logo" 
+                className="w-full h-full object-cover"
+              />
             </div>
             <div>
               <h1 className="text-2xl font-bold gradient-text">Swap Saga</h1>
@@ -30,6 +35,7 @@ function Navigation() {
             </div>
           </div>
 
+          {/* Navigation Links */}
           <div className="flex space-x-1">
             {navItems.map((item) => {
               const Icon = item.icon
@@ -41,17 +47,18 @@ function Navigation() {
                   to={item.path}
                   className={`flex items-center space-x-2 px-6 py-3 rounded-xl transition-all duration-300 ${
                     isActive
-                      ? 'gradient-bg text-white shadow-lg'
-                      : 'text-gray-400 hover:text-white hover:bg-glass'
+                      ? 'gradient-bg text-white shadow-lg transform scale-105'
+                      : 'text-gray-400 hover:text-white hover:bg-glass hover:scale-105'
                   }`}
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
                   <span className="font-medium">{item.label}</span>
                 </Link>
               )
             })}
           </div>
 
+          {/* Network Status */}
           <div className="text-right">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-emerald-500/30">
               <div className="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></div>

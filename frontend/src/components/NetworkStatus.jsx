@@ -5,13 +5,13 @@ import { useBlockchainContext } from '../context/BlockchainContext'
 function NetworkStatus() {
   const { network, account } = useBlockchainContext()
   const [showSwitchNetwork, setShowSwitchNetwork] = useState(false)
-  
+
   // Check if we're on the correct network
   const isCorrectNetwork = network?.chainId === BigInt(84532)
-  
+
   // Only show if connected but wrong network
   const shouldShowWarning = account && network && !isCorrectNetwork
-  
+
   // Network name mapping
   const getNetworkName = (chainId) => {
     switch (chainId?.toString()) {
@@ -30,7 +30,7 @@ function NetworkStatus() {
       })
     } catch (error) {
       console.error('Error switching network:', error)
-      
+
       // Chain not added to MetaMask
       if (error.code === 4902) {
         try {
@@ -62,14 +62,15 @@ function NetworkStatus() {
   return (
     <>
       {/* Network Status Indicator (Always shown when connected) */}
-      <div className="fixed top-4 left-4 z-50">
-        <div className="flex items-center space-x-2 px-3 py-2 glass-card rounded-xl shadow-lg">
+      {/* Network Status Indicator - Top Right */}
+      {/* <div className="fixed top-4 right-4 z-50">
+        <div className="flex items-center space-x-2 px-3 py-2 glass-card rounded-xl shadow-lg backdrop-blur-sm">
           <div className={`w-2 h-2 rounded-full ${isCorrectNetwork ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></div>
           <span className="text-sm font-medium">
             {isCorrectNetwork ? 'Base Sepolia' : getNetworkName(network?.chainId?.toString())}
           </span>
         </div>
-      </div>
+      </div> */}
 
       {/* Network Warning Banner (Only shows for wrong network) */}
       {shouldShowWarning && (
@@ -99,7 +100,7 @@ function NetworkStatus() {
                     {showSwitchNetwork ? 'Hide Details' : 'Show Details'}
                   </button>
                 </div>
-                
+
                 {showSwitchNetwork && (
                   <div className="mt-3 p-3 bg-amber-900/30 rounded-lg border border-amber-500/20">
                     <p className="text-xs text-amber-200/80 mb-2">
@@ -119,7 +120,7 @@ function NetworkStatus() {
         </div>
       )}
 
-      
+
     </>
   )
 }

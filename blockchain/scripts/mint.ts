@@ -9,7 +9,7 @@ async function main() {
   const tokenA = await ethers.getContractAt("TokenA", TOKEN_A);
   const tokenB = await ethers.getContractAt("TokenB", TOKEN_B);
 
-  const amount = ethers.parseEther("1000");
+  const amount = ethers.parseEther("100000");
 
   await (await tokenA.mint(user.address, amount)).wait();
   console.log("Minted TokenA");

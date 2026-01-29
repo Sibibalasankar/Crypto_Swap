@@ -144,14 +144,14 @@ function Dashboard() {
                 <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
                 <span>Refresh Data</span>
               </button>
-              <button
+              {/* <button
                 onClick={runDebug}
                 disabled={txLoading}
                 className="flex items-center space-x-2 px-4 py-2 glass-card hover:bg-amber-500/20 transition-colors disabled:opacity-50"
               >
                 <Bug className="w-5 h-5" />
                 <span>Debug</span>
-              </button>
+              </button> */}
             </div>
           </div>
           <div className="flex space-x-4">
