@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { ArrowDown, Zap, Info } from 'lucide-react'
+import { ArrowDown, Zap, Info, TrendingUp, ArrowDownUp } from 'lucide-react'
 import { useBlockchainContext } from '../context/BlockchainContext'
 import { debounce } from 'lodash'
 
@@ -128,9 +128,22 @@ function SwapInterface() {
     }
   }
 
+  // Calculate values - order matters!
   const rate = calculateRate()
   const minReceived = calculateMinimumReceived()
   const totalLiquidity = calculateTotalLiquidity()
+  
+  // Calculate price impact using the rate that's now defined
+  const calculatePriceImpact = () => {
+    if (!fromAmount || !toAmount || parseFloat(fromAmount) <= 0 || parseFloat(toAmount) <= 0) return '0'
+    const expectedRate = parseFloat(rate)
+    const actualRate = parseFloat(toAmount) / parseFloat(fromAmount)
+    if (expectedRate <= 0) return '0'
+    const impact = ((expectedRate - actualRate) / expectedRate) * 100
+    return Math.abs(impact).toFixed(2)
+  }
+  
+  const priceImpact = calculatePriceImpact()
 
   const getSwapButtonText = () => {
     if (txLoading) return 'Swapping...'
@@ -139,7 +152,7 @@ function SwapInterface() {
     if (!account) return 'Connect Wallet'
     if (!fromAmount || parseFloat(fromAmount) <= 0) return 'Enter Amount'
     if (parseFloat(fromAmount) > fromBalance) return 'Insufficient Balance'
-    return 'Swap'
+    return 'Swap Tokens'
   }
 
   const isSwapDisabled = txLoading || isLoading || isCalculating || 
@@ -147,247 +160,195 @@ function SwapInterface() {
     !account || parseFloat(fromAmount) > fromBalance
 
   return (
-    <div className="max-w-md mx-auto px-4">
-      {/* Main Swap Card */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 sm:p-6 mb-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-white">Swap</h2>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-            <span className="text-sm text-gray-400">Testnet</span>
+    <div className="max-w-md mx-auto px-4 py-6">
+      {/* Main Swap Card - More Compact */}
+      <div className="relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl blur-xl -z-10"></div>
+        
+        <div className="bg-gradient-to-br from-gray-900/95 to-gray-900/90 backdrop-blur-xl border border-gray-800/50 rounded-2xl p-4 shadow-2xl">
+          {/* Compact Header */}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Swap
+            </h2>
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-800/50 border border-gray-700/50 rounded-lg">
+              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+              <span className="text-xs text-gray-400">Base Sepolia</span>
+            </div>
           </div>
-        </div>
 
-        {/* From Token */}
-        <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 mb-2">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-gray-400 font-medium">From</span>
-            <span className="text-sm text-gray-400">
-              Balance: {fromBalance.toFixed(4)}
-            </span>
-          </div>
-          
-          <div className="flex items-center justify-between mb-3">
-            <input
-              type="number"
-              value={fromAmount}
-              onChange={(e) => setFromAmount(e.target.value)}
-              placeholder="0.0"
-              className="flex-1 bg-transparent text-2xl sm:text-3xl font-semibold outline-none text-white placeholder:text-gray-500 min-w-0"
-              disabled={txLoading || isLoading}
-              step="any"
-              min="0"
-            />
-            
-            {/* Compact Token Selector */}
-            <div className="flex items-center gap-1 ml-2">
-              <button
-                onClick={() => {
-                  if (fromToken !== 'TKA') {
-                    setFromToken('TKA')
-                    setFromAmount('')
-                    setToAmount('')
-                  }
-                }}
-                className={`px-3 py-2 rounded-lg font-semibold text-sm sm:text-base ${
-                  fromToken === 'TKA' 
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white' 
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-                disabled={txLoading || isLoading}
-              >
-                TKA
-              </button>
-              <button
-                onClick={() => {
-                  if (fromToken !== 'TKB') {
-                    setFromToken('TKB')
-                    setFromAmount('')
-                    setToAmount('')
-                  }
-                }}
-                className={`px-3 py-2 rounded-lg font-semibold text-sm sm:text-base ${
-                  fromToken === 'TKB' 
-                    ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white' 
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-                disabled={txLoading || isLoading}
-              >
-                TKB
-              </button>
-            </div>
-          </div>
-          
-          {/* Quick Amount Buttons */}
-          <div className="flex gap-2">
-            {[25, 50, 75, 100].map((percent) => (
-              <button 
-                key={percent}
-                onClick={() => handleSetPercentage(percent / 100)}
-                className="flex-1 px-2 py-1.5 text-xs font-medium text-gray-300 bg-gray-700 border border-gray-600 rounded-lg hover:border-gray-500 hover:text-white transition-colors disabled:opacity-50"
-                disabled={txLoading || isLoading || fromBalance <= 0}
-              >
-                {percent}%
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Swap Direction Button */}
-        <div className="flex justify-center -my-2 relative z-10">
-          <button
-            onClick={handleSwapTokens}
-            className="bg-gray-900 border-4 border-gray-900 w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors disabled:opacity-50"
-            disabled={txLoading || isLoading}
-          >
-            <ArrowDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-          </button>
-        </div>
-
-        {/* To Token */}
-        <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 mb-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm text-gray-400 font-medium">To (Estimated)</span>
-            <span className="text-sm text-gray-400">
-              Balance: {toBalance.toFixed(4)}
-            </span>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <input
-              type="text"
-              value={isCalculating ? 'Calculating...' : toAmount}
-              readOnly
-              placeholder="0.0"
-              className="flex-1 bg-transparent text-2xl sm:text-3xl font-semibold outline-none text-gray-300 placeholder:text-gray-500 min-w-0"
-            />
-            
-            {/* Compact Token Selector */}
-            <div className="flex items-center gap-1 ml-2">
-              <button
-                onClick={() => {
-                  if (toToken !== 'TKA') {
-                    setToToken('TKA')
-                    setFromAmount('')
-                    setToAmount('')
-                  }
-                }}
-                className={`px-3 py-2 rounded-lg font-semibold text-sm sm:text-base ${
-                  toToken === 'TKA' 
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white' 
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-                disabled={txLoading || isLoading}
-              >
-                TKA
-              </button>
-              <button
-                onClick={() => {
-                  if (toToken !== 'TKB') {
-                    setToToken('TKB')
-                    setFromAmount('')
-                    setToAmount('')
-                  }
-                }}
-                className={`px-3 py-2 rounded-lg font-semibold text-sm sm:text-base ${
-                  toToken === 'TKB' 
-                    ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white' 
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-                disabled={txLoading || isLoading}
-              >
-                TKB
-              </button>
-            </div>
-          </div>
-          
-          {error && (
-            <div className="mt-2 text-sm text-red-400 flex items-center gap-1">
-              <Info className="w-4 h-4 flex-shrink-0" />
-              <span className="break-words">{error}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Swap Details */}
-        {fromAmount && parseFloat(fromAmount) > 0 && (
-          <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 mb-4 space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-400">Rate</span>
-              <span className="font-medium text-white">
-                1 {fromToken} = {isCalculating ? '...' : rate} {toToken}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-400">Fee</span>
-              <span className="font-medium text-white">0.3%</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-400">Minimum received</span>
-              <span className="font-medium text-white">
-                {isCalculating ? '...' : minReceived} {toToken}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-400">Slippage tolerance</span>
+          {/* From Token - More Compact */}
+          <div className="bg-gradient-to-br from-gray-800/90 to-gray-800/70 border border-gray-700/50 rounded-xl p-3 mb-2">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  value={slippage}
-                  onChange={(e) => {
-                    const value = e.target.value
-                    if (value === '' || (parseFloat(value) >= 0.1 && parseFloat(value) <= 5)) {
-                      setSlippage(value)
-                    }
-                  }}
-                  className="w-12 sm:w-14 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white text-right outline-none"
-                  min="0.1"
-                  max="5"
-                  step="0.1"
-                />
-                <span className="font-medium text-white text-sm">%</span>
+                <span className="text-xs text-gray-400">Pay</span>
+                <div className={`px-2 py-0.5 rounded-md font-semibold text-white text-xs ${
+                  fromToken === 'TKA' 
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700' 
+                    : 'bg-gradient-to-r from-purple-600 to-purple-700'
+                }`}>
+                  {fromToken}
+                </div>
+              </div>
+              <span className="text-xs text-gray-500">Balance: {fromBalance.toFixed(2)}</span>
+            </div>
+            
+            <div className="flex items-center gap-2 mb-2">
+              <input
+                type="number"
+                value={fromAmount}
+                onChange={(e) => setFromAmount(e.target.value)}
+                placeholder="0.0"
+                className="flex-1 bg-transparent text-2xl font-bold outline-none text-white placeholder:text-gray-600"
+                disabled={txLoading || isLoading}
+                step="any"
+                min="0"
+              />
+            </div>
+            
+            {/* Quick Buttons - More Compact */}
+            <div className="flex gap-1.5">
+              {[25, 50, 75, 100].map((percent) => (
+                <button 
+                  key={percent}
+                  onClick={() => handleSetPercentage(percent / 100)}
+                  className="flex-1 px-2 py-1 text-xs font-medium text-gray-300 bg-gray-700/50 border border-gray-600/50 rounded hover:bg-gray-600/50 hover:text-white transition-all disabled:opacity-50"
+                  disabled={txLoading || isLoading || fromBalance <= 0}
+                >
+                  {percent}%
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Swap Button - Centered and Compact */}
+          <div className="flex justify-center my-2">
+            <button
+              onClick={handleSwapTokens}
+              className="bg-gray-800 border border-gray-700 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-all disabled:opacity-50"
+              disabled={txLoading || isLoading}
+            >
+              <ArrowDownUp className="w-3 h-3 text-gray-300" />
+            </button>
+          </div>
+
+          {/* To Token - More Compact */}
+          <div className="bg-gradient-to-br from-gray-800/90 to-gray-800/70 border border-gray-700/50 rounded-xl p-3 mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">Receive</span>
+                <div className={`px-2 py-0.5 rounded-md font-semibold text-white text-xs ${
+                  toToken === 'TKA' 
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700' 
+                    : 'bg-gradient-to-r from-purple-600 to-purple-700'
+                }`}>
+                  {toToken}
+                </div>
+              </div>
+              <span className="text-xs text-gray-500">Balance: {toBalance.toFixed(2)}</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={isCalculating ? 'Calculating...' : toAmount}
+                readOnly
+                placeholder="0.0"
+                className="flex-1 bg-transparent text-2xl font-bold outline-none text-gray-300 placeholder:text-gray-600"
+              />
+            </div>
+            
+            {error && (
+              <div className="mt-3 p-2 bg-red-900/20 border border-red-800/50 rounded-lg">
+                <div className="flex items-center gap-2 text-xs text-red-400">
+                  <Info className="w-3 h-3 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Swap Details - Integrated into main card */}
+          {fromAmount && parseFloat(fromAmount) > 0 && (
+            <div className="bg-gradient-to-br from-gray-800/80 to-gray-800/60 border border-gray-700/50 rounded-xl p-3 mb-4">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="text-xs text-gray-400">Rate</div>
+                <div className="text-xs font-medium text-white text-right">
+                  1 {fromToken} = {isCalculating ? '...' : rate} {toToken}
+                </div>
+                
+                <div className="text-xs text-gray-400">Impact</div>
+                <div className={`text-xs font-medium text-right ${
+                  parseFloat(priceImpact) > 5 ? 'text-red-400' : 
+                  parseFloat(priceImpact) > 2 ? 'text-yellow-400' : 
+                  'text-emerald-400'
+                }`}>
+                  {isCalculating ? '...' : `${priceImpact}%`}
+                </div>
+                
+                <div className="text-xs text-gray-400">Min Received</div>
+                <div className="text-xs font-medium text-white text-right">
+                  {isCalculating ? '...' : minReceived} {toToken}
+                </div>
+                
+                <div className="text-xs text-gray-400">Slippage</div>
+                <div className="flex items-center justify-end gap-1">
+                  <input
+                    type="number"
+                    value={slippage}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      if (value === '' || (parseFloat(value) >= 0.1 && parseFloat(value) <= 5)) {
+                        setSlippage(value)
+                      }
+                    }}
+                    className="w-12 bg-gray-700/50 border border-gray-600/50 rounded px-1.5 py-0.5 text-xs text-white text-center outline-none"
+                    min="0.1"
+                    max="5"
+                    step="0.1"
+                  />
+                  <span className="text-xs text-gray-400">%</span>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Swap Button */}
-        <button
-          onClick={handleSwap}
-          disabled={isSwapDisabled}
-          className="w-full px-4 py-3 sm:px-6 sm:py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {txLoading || isLoading || isCalculating ? (
-            <>
-              <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-sm sm:text-base">{getSwapButtonText()}</span>
-            </>
-          ) : (
-            <>
-              <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-sm sm:text-base">{getSwapButtonText()}</span>
-            </>
           )}
-        </button>
-      </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-3 sm:gap-4">
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4 text-center">
-          <div className="text-xs text-gray-400 mb-1 font-medium">24h Volume</div>
-          <div className="text-lg sm:text-xl font-bold text-white">-</div>
-        </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4 text-center">
-          <div className="text-xs text-gray-400 mb-1 font-medium">TVL</div>
-          <div className="text-lg sm:text-xl font-bold text-white">
-            {isLoading ? '...' : `$${totalLiquidity}`}
+          {/* Pool Stats - Horizontal layout */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="bg-gradient-to-br from-gray-800/80 to-gray-800/60 border border-gray-700/50 rounded-xl p-2 text-center">
+              <div className="text-xs text-gray-400">TVL</div>
+              <div className="text-sm font-bold text-white">
+                {isLoading ? '...' : `$${totalLiquidity}`}
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-gray-800/80 to-gray-800/60 border border-gray-700/50 rounded-xl p-2 text-center">
+              <div className="text-xs text-gray-400">Rate</div>
+              <div className="text-sm font-bold text-white">
+                {isCalculating || isLoading ? '...' : rate}
+              </div>
+              <div className="text-xs text-gray-500">{fromToken}/{toToken}</div>
+            </div>
           </div>
-        </div>
-        <div className="bg-gray-900 border border-gray-800 rounded-xl p-3 sm:p-4 text-center">
-          <div className="text-xs text-gray-400 mb-1 font-medium">Price</div>
-          <div className="text-lg sm:text-xl font-bold text-white">
-            {isCalculating || isLoading ? '...' : rate}
-          </div>
+
+          {/* Swap Button */}
+          <button
+            onClick={handleSwap}
+            disabled={isSwapDisabled}
+            className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {txLoading || isLoading || isCalculating ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm">{getSwapButtonText()}</span>
+              </>
+            ) : (
+              <>
+                <Zap className="w-4 h-4" />
+                <span className="text-sm">{getSwapButtonText()}</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>

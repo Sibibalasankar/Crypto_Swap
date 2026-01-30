@@ -27,7 +27,7 @@ function App() {
             <NetworkStatus />
             
             <main className="container mx-auto px-4 py-8">
-                           
+                            
               <Routes>
                 {/* All pages now share the same blockchain state */}
                 <Route path="/" element={<Dashboard />} />
