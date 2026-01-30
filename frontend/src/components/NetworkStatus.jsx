@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { AlertCircle, CheckCircle } from 'lucide-react'
 import { useBlockchainContext } from '../context/BlockchainContext'
+import WalletConnect from './WalletConnect'
 
 function NetworkStatus() {
   const { network, account } = useBlockchainContext()

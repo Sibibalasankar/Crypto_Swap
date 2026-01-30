@@ -27,11 +27,7 @@ function App() {
             <NetworkStatus />
             
             <main className="container mx-auto px-4 py-8">
-              <div className="flex justify-end mb-6">
-                {/* WalletConnect now gets blockchain state from context */}
-                <WalletConnect />
-              </div>
-              
+                           
               <Routes>
                 {/* All pages now share the same blockchain state */}
                 <Route path="/" element={<Dashboard />} />

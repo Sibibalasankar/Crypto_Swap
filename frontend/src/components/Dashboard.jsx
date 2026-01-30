@@ -1,15 +1,14 @@
 import React, { useState } from 'react'
-import { TrendingUp, Users, DollarSign, Activity, RefreshCw, Bug } from 'lucide-react'
+import { TrendingUp, Users, DollarSign, Activity, RefreshCw, ArrowRight } from 'lucide-react'
 import { useBlockchainContext } from '../context/BlockchainContext'
 import { Link } from 'react-router-dom'
 
 function Dashboard() {
-  // Use context instead of direct hook
   const { account, balances, reserves, mintTokens, isLoading, txLoading, refreshData } = useBlockchainContext()
   const [mintLoading, setMintLoading] = useState({ TKA: false, TKB: false })
   const [refreshing, setRefreshing] = useState(false)
   
-  // Calculate TVL (assuming $1 per token for testnet)
+  // Calculate TVL
   const calculateTVL = () => {
     const reserveA = parseFloat(reserves.reserveA) || 0
     const reserveB = parseFloat(reserves.reserveB) || 0
@@ -26,30 +25,50 @@ function Dashboard() {
     return 0
   }
 
+  // Calculate percentages for progress bars
+  const calculateReservePercentages = () => {
+    const reserveA = parseFloat(reserves.reserveA) || 0
+    const reserveB = parseFloat(reserves.reserveB) || 0
+    const total = reserveA + reserveB
+    
+    if (total > 0) {
+      return {
+        reserveAPercent: (reserveA / total) * 100,
+        reserveBPercent: (reserveB / total) * 100
+      }
+    }
+    return {
+      reserveAPercent: 50,
+      reserveBPercent: 50
+    }
+  }
+
+  const percentages = calculateReservePercentages()
+
   const stats = [
     { 
       icon: DollarSign, 
-      label: 'TVL', 
+      label: 'Total Value Locked', 
       value: `$${calculateTVL()}`, 
-      change: 'Live' 
+      change: 'Live'
     },
     { 
       icon: Users, 
       label: 'Your Balance', 
       value: `${balances.tokenA ? parseFloat(balances.tokenA).toFixed(4) : '0.0000'} TKA`, 
-      change: `${balances.tokenB ? parseFloat(balances.tokenB).toFixed(4) : '0.0000'} TKB` 
+      change: `${balances.tokenB ? parseFloat(balances.tokenB).toFixed(4) : '0.0000'} TKB`
     },
     { 
       icon: Activity, 
       label: 'Pool Reserves', 
       value: `${reserves.reserveA ? parseFloat(reserves.reserveA).toFixed(4) : '0.0000'} TKA`, 
-      change: `${reserves.reserveB ? parseFloat(reserves.reserveB).toFixed(4) : '0.0000'} TKB` 
+      change: `${reserves.reserveB ? parseFloat(reserves.reserveB).toFixed(4) : '0.0000'} TKB`
     },
     { 
       icon: TrendingUp, 
       label: 'Exchange Rate', 
       value: reserves.reserveA > 0 ? `1 TKA = ${calculateExchangeRate()} TKB` : 'N/A', 
-      change: 'Live' 
+      change: 'Live'
     },
   ]
 
@@ -66,7 +85,6 @@ function Dashboard() {
         const tx = await mintTokens(token, amount)
         if (tx) {
           alert(`✅ Successfully minted ${amount} ${token}!`)
-          // Data will refresh automatically via context
         }
       } catch (error) {
         alert(`❌ Mint failed: ${error.message}`)
@@ -78,16 +96,8 @@ function Dashboard() {
 
   const handleRefresh = async () => {
     setRefreshing(true)
-    await refreshData() // Use refreshData from context
+    await refreshData()
     setRefreshing(false)
-  }
-
-  const runDebug = async () => {
-    if (window.debugContracts) {
-      await window.debugContracts()
-    } else {
-      alert('Debug script not loaded. Check console.')
-    }
   }
 
   const quickSetup = async () => {
@@ -96,20 +106,17 @@ function Dashboard() {
       return
     }
     
-    if (confirm('This will:\n1. Mint 1000 TKA\n2. Mint 1000 TKB\n\nContinue?')) {
+    if (confirm('This will mint 1000 TKA and 1000 TKB\n\nContinue?')) {
       try {
-        // Mint TKA
         alert('Minting 1000 TKA...')
         await mintTokens('TKA', '1000')
         
-        // Wait a bit
-        await new Promise(resolve => setTimeout(resolve, 3000))
+        await new Promise(resolve => setTimeout(resolve, 2000))
         
-        // Mint TKB
         alert('Minting 1000 TKB...')
         await mintTokens('TKB', '1000')
         
-        alert('✅ Setup complete! Now add liquidity from the Liquidity tab.')
+        alert('✅ Setup complete! Add liquidity from Liquidity tab.')
         
       } catch (error) {
         alert(`❌ Setup failed: ${error.message}`)
@@ -117,261 +124,255 @@ function Dashboard() {
     }
   }
 
-  // Format account address
-  const formatAddress = (address) => {
-    if (!address) return ''
-    return `${address.slice(0, 6)}...${address.slice(-4)}`
-  }
-
   return (
-    <div>
-      {/* Hero Section */}
-      <div className="glass-card mb-8 overflow-hidden">
-        <div className="gradient-bg p-8">
-          <div className="flex justify-between items-start mb-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Simplified Header */}
+      <div className="mb-10">
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-6">
             <div>
-              <h1 className="text-4xl font-bold mb-2">Swap Saga AMM</h1>
-              <p className="text-xl text-white/90">
-                Bidirectional Automated Market Maker on Base Sepolia
-              </p>
+              <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
+              <p className="text-gray-400">Bidirectional AMM on Base Sepolia</p>
             </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={handleRefresh}
-                disabled={isLoading || refreshing || txLoading}
-                className="flex items-center space-x-2 px-4 py-2 glass-card hover:bg-glass-border transition-colors disabled:opacity-50"
-              >
-                <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
-                <span>Refresh Data</span>
-              </button>
-              {/* <button
-                onClick={runDebug}
-                disabled={txLoading}
-                className="flex items-center space-x-2 px-4 py-2 glass-card hover:bg-amber-500/20 transition-colors disabled:opacity-50"
-              >
-                <Bug className="w-5 h-5" />
-                <span>Debug</span>
-              </button> */}
-            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={isLoading || refreshing || txLoading}
+              className="flex items-center gap-2 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+              <span>Refresh Data</span>
+            </button>
           </div>
-          <div className="flex space-x-4">
-            <Link to="/swap" className="glass-card px-6 py-3 font-semibold hover:scale-105 transition-transform block">
-              Start Swapping
+
+          {/* Hero Actions with consistent blue/purple theme */}
+          <div className="flex flex-wrap gap-3">
+            <Link 
+              to="/swap"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity"
+            >
+              <span>Start Swapping</span>
+              <ArrowRight className="w-5 h-5" />
             </Link>
-            <Link to="/liquidity" className="glass-card px-6 py-3 font-semibold hover:scale-105 transition-transform block">
+            <Link 
+              to="/liquidity"
+              className="px-6 py-3 bg-gray-800 border border-gray-700 text-white font-semibold rounded-lg hover:bg-gray-700 transition-colors"
+            >
               Add Liquidity
             </Link>
-            <button 
+            {/* <button 
               onClick={quickSetup}
-              disabled={txLoading}
-              className="glass-card px-6 py-3 font-semibold hover:scale-105 transition-transform bg-emerald-500/20 hover:bg-emerald-500/30 disabled:opacity-50"
+              disabled={txLoading || !account}
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {txLoading ? 'Processing...' : 'Quick Setup'}
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
 
-      {/* Wallet Status */}
+      {/* Wallet Status - Updated with borders and better alignment */}
       {account ? (
-        <div className="glass-card p-6 mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center space-x-2">
-                <h3 className="text-xl font-bold gradient-text">Wallet Connected</h3>
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                <span className="text-emerald-400 font-medium">Wallet Connected</span>
               </div>
-              <p className="text-gray-400 text-sm mt-1">{formatAddress(account)}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-lg font-bold mb-2">Your Balances</p>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between min-w-40">
-                  <span className="text-gray-300">TKA:</span>
-                  <span className="font-bold gradient-text">
-                    {isLoading ? '...' : (balances.tokenA ? parseFloat(balances.tokenA).toFixed(4) : '0.0000')}
-                  </span>
+              {/* Updated balance display with borders */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-400 text-sm">Token A Balance</span>
+                    <span className="text-xs text-blue-400 font-medium">TKA</span>
+                  </div>
+                  <p className="text-2xl font-bold text-white">
+                    {isLoading ? '...' : (balances.tokenA ? parseFloat(balances.tokenA).toFixed(2) : '0.00')}
+                  </p>
                 </div>
-                <div className="flex items-center justify-between min-w-40">
-                  <span className="text-gray-300">TKB:</span>
-                  <span className="font-bold gradient-text">
-                    {isLoading ? '...' : (balances.tokenB ? parseFloat(balances.tokenB).toFixed(4) : '0.0000')}
-                  </span>
+                <div className="flex-1 p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gray-400 text-sm">Token B Balance</span>
+                    <span className="text-xs text-purple-400 font-medium">TKB</span>
+                  </div>
+                  <p className="text-2xl font-bold text-white">
+                    {isLoading ? '...' : (balances.tokenB ? parseFloat(balances.tokenB).toFixed(2) : '0.00')}
+                  </p>
                 </div>
               </div>
             </div>
-            <div className="flex space-x-2">
+            
+            {/* Mint buttons with coin emojis */}
+            <div className="flex flex-col sm:flex-row gap-3">
               <button 
                 onClick={() => handleMint('TKA')}
                 disabled={isLoading || mintLoading.TKA || txLoading}
-                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 min-w-24 flex items-center justify-center"
+                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 min-w-32"
               >
                 {mintLoading.TKA ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  'Mint TKA'
+                  <>
+                    <span className="text-lg">🪙</span>
+                    Mint TKA
+                  </>
                 )}
               </button>
               <button 
                 onClick={() => handleMint('TKB')}
                 disabled={isLoading || mintLoading.TKB || txLoading}
-                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 min-w-24 flex items-center justify-center"
+                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 min-w-32"
               >
                 {mintLoading.TKB ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  'Mint TKB'
+                  <>
+                    <span className="text-lg">🪙</span>
+                    Mint TKB
+                  </>
                 )}
               </button>
             </div>
           </div>
         </div>
       ) : (
-        <div className="glass-card p-6 mb-8 text-center">
-          <h3 className="text-xl font-bold gradient-text mb-2">Connect Your Wallet</h3>
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center mb-8">
+          <h3 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h3>
           <p className="text-gray-400">Connect to Base Sepolia to start swapping tokens</p>
-          <p className="text-sm text-gray-500 mt-2">Need test ETH? Use the Base Sepolia faucet</p>
         </div>
       )}
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Stats Grid - Simplified */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {stats.map((stat, index) => (
-          <div key={index} className="glass-card p-6 glow-effect">
-            <div className="flex items-center justify-between">
+          <div key={index} className="bg-gray-900 border border-gray-800 rounded-xl p-6">
+            <div className="flex items-start justify-between">
               <div>
-                <p className="text-gray-400 text-sm">{stat.label}</p>
-                <p className="text-2xl font-bold mt-2">
+                <p className="text-gray-400 text-sm mb-2">{stat.label}</p>
+                <p className="text-xl font-bold text-white mb-3">
                   {isLoading ? '...' : stat.value}
                 </p>
+                <span className="text-emerald-400 text-sm">
+                  {stat.change}
+                </span>
               </div>
-              <div className="w-12 h-12 gradient-bg rounded-xl flex items-center justify-center">
-                <stat.icon className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center">
+                <stat.icon className="w-5 h-5 text-gray-400" />
               </div>
-            </div>
-            <div className="mt-4">
-              <span className="text-emerald-400 text-sm font-medium">
-                {stat.change}
-              </span>
-              {stat.label === 'Your Balance' && (
-                <span className="text-gray-400 text-sm ml-2">/ {stat.change}</span>
-              )}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Pool Info */}
-        <div className="glass-card p-6">
-          <h3 className="text-xl font-bold mb-4 gradient-text">Liquidity Pool</h3>
-          <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Pool Info - Updated with fixed progress bars */}
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <h3 className="text-xl font-bold text-white mb-6">Liquidity Pool</h3>
+          
+          <div className="space-y-4 mb-6">
             <div>
-              <div className="flex justify-between mb-2">
+              <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-400">TKA Reserve</span>
-                <span className="font-medium">
-                  {isLoading ? '...' : (reserves.reserveA ? parseFloat(reserves.reserveA).toFixed(4) : '0.0000')} TKA
+                <span className="text-white">
+                  {isLoading ? '...' : (reserves.reserveA ? parseFloat(reserves.reserveA).toFixed(2) : '0.00')} TKA
                 </span>
               </div>
               <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
                 <div 
-                  className="h-full gradient-bg"
-                  style={{ 
-                    width: reserves.reserveA > 0 && reserves.reserveB > 0 
-                      ? `${(parseFloat(reserves.reserveA) / (parseFloat(reserves.reserveA) + parseFloat(reserves.reserveB))) * 100}%` 
-                      : '50%' 
-                  }}
+                  className="h-full bg-gradient-to-r from-blue-600 to-blue-700 transition-all duration-500"
+                  style={{ width: `${percentages.reserveAPercent}%` }}
                 ></div>
               </div>
+              <div className="text-right text-xs text-gray-500 mt-1">
+                {percentages.reserveAPercent.toFixed(1)}%
+              </div>
             </div>
+            
             <div>
-              <div className="flex justify-between mb-2">
+              <div className="flex justify-between text-sm mb-2">
                 <span className="text-gray-400">TKB Reserve</span>
-                <span className="font-medium">
-                  {isLoading ? '...' : (reserves.reserveB ? parseFloat(reserves.reserveB).toFixed(4) : '0.0000')} TKB
+                <span className="text-white">
+                  {isLoading ? '...' : (reserves.reserveB ? parseFloat(reserves.reserveB).toFixed(2) : '0.00')} TKB
                 </span>
               </div>
               <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
                 <div 
-                  className="h-full gradient-bg"
-                  style={{ 
-                    width: reserves.reserveA > 0 && reserves.reserveB > 0 
-                      ? `${(parseFloat(reserves.reserveB) / (parseFloat(reserves.reserveA) + parseFloat(reserves.reserveB))) * 100}%` 
-                      : '50%' 
-                  }}
+                  className="h-full bg-gradient-to-r from-purple-600 to-purple-700 transition-all duration-500"
+                  style={{ width: `${percentages.reserveBPercent}%` }}
                 ></div>
               </div>
-            </div>
-            <div className="pt-4 border-t border-glass-border">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Pool Value (Estimated)</span>
-                <span className="font-bold gradient-text">
-                  {isLoading ? '...' : `$${calculateTVL()}`}
-                </span>
+              <div className="text-right text-xs text-gray-500 mt-1">
+                {percentages.reserveBPercent.toFixed(1)}%
               </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-between items-center pt-6 border-t border-gray-800">
+            <div>
+              <p className="text-gray-400 text-sm">Pool Value</p>
+              <p className="text-2xl font-bold text-white">${calculateTVL()}</p>
             </div>
             <Link 
               to="/liquidity"
-              className="w-full glass-card py-3 font-semibold hover:scale-105 transition-transform block text-center"
+              className="px-4 py-2 bg-gray-800 border border-gray-700 text-white font-medium rounded-lg hover:bg-gray-700 transition-colors"
             >
-              Manage Liquidity
+              Manage
             </Link>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="glass-card p-6">
-          <h3 className="text-xl font-bold mb-4 gradient-text">Quick Actions</h3>
-          <div className="space-y-4">
+        {/* Quick Actions - Simplified */}
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <h3 className="text-xl font-bold text-white mb-6">Quick Actions</h3>
+          
+          <div className="space-y-3">
             <Link 
               to="/swap" 
-              className="block p-4 glass-card hover:bg-glass-border transition-all duration-300 rounded-xl group"
+              className="flex items-center justify-between p-4 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 transition-colors"
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-semibold">Swap Tokens</h4>
-                  <p className="text-sm text-gray-400">
-                    Exchange TKA for TKB and vice versa
-                  </p>
-                </div>
-                <div className="w-10 h-10 gradient-bg rounded-lg flex items-center justify-center">
-                  <span className="font-bold">🔄</span>
-                </div>
+              <div>
+                <h4 className="font-semibold text-white mb-1">Swap Tokens</h4>
+                <p className="text-sm text-gray-400">Exchange TKA for TKB and vice versa</p>
+              </div>
+              <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
+                <span className="text-xl">🔄</span>
               </div>
             </Link>
             
             <Link 
               to="/liquidity" 
-              className="block p-4 glass-card hover:bg-glass-border transition-all duration-300 rounded-xl group"
+              className="flex items-center justify-between p-4 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 transition-colors"
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-semibold">Add Liquidity</h4>
-                  <p className="text-sm text-gray-400">
-                    Provide liquidity and earn fees
-                  </p>
-                </div>
-                <div className="w-10 h-10 gradient-bg rounded-lg flex items-center justify-center">
-                  <span className="font-bold">💧</span>
-                </div>
+              <div>
+                <h4 className="font-semibold text-white mb-1">Add Liquidity</h4>
+                <p className="text-sm text-gray-400">Provide liquidity and earn fees</p>
+              </div>
+              <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
+                <span className="text-xl">💧</span>
               </div>
             </Link>
             
-            <div className="p-4 glass-card rounded-xl">
-              <h4 className="font-semibold mb-2">Network Info</h4>
-              <div className="space-y-1 text-sm">
-                <p className="text-gray-400">Chain: <span className="text-emerald-400">Base Sepolia (Testnet)</span></p>
-                <p className="text-gray-400">Chain ID: <span className="text-emerald-400">84532</span></p>
-                <p className="mt-3">
+            <div className="p-4 bg-gray-800 border border-gray-700 rounded-lg">
+              <h4 className="font-semibold text-white mb-3">Network Info</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Chain:</span>
+                  <span className="text-emerald-400">Base Sepolia</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Chain ID:</span>
+                  <span className="text-white">84532</span>
+                </div>
+                <div className="pt-3">
                   <a 
                     href="https://faucet.quicknode.com/base/sepolia" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 hover:underline"
+                    className="text-blue-400 hover:text-blue-300 text-sm"
                   >
-                    🔗 Get test ETH from faucet
+                    Get test ETH from faucet →
                   </a>
-                </p>
+                </div>
               </div>
             </div>
           </div>
