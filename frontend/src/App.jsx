@@ -19,7 +19,7 @@ function App() {
         <div className="min-h-screen relative overflow-hidden">
 
           {/* ================= PIXELBLAST BACKGROUND ================= */}
-          <div className="fixed inset-0 z-0 pointer-events-none">
+          <div className="fixed inset-0 z-0">
             <PixelBlast
               variant="square"
               pixelSize={6}
@@ -27,24 +27,20 @@ function App() {
               patternScale={1.4}
               patternDensity={0.55}
               pixelSizeJitter={0}
-
-              enableRipples={false}
-              liquid={false}
-
               speed={0.25}
               edgeFade={0.55}
               transparent
             />
           </div>
 
-          {/* Soft neutral overlay for glass readability */}
-          <div className="fixed inset-0 z-[1] bg-black/20 backdrop-blur-[4px]" />
+          {/* Soft overlay (visual only, no interaction blocking) */}
+          <div className="fixed inset-0 z-[1] bg-black/20 backdrop-blur-[4px] pointer-events-none" />
 
           {/* ================= APP CONTENT ================= */}
           <div className="relative z-10 flex flex-col min-h-screen">
             <Navigation />
             <NetworkStatus />
-          
+
 
             <main className="flex-grow container mx-auto px-4 py-8">
               <Routes>
