@@ -160,195 +160,197 @@ function SwapInterface() {
     !account || parseFloat(fromAmount) > fromBalance
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6">
-      {/* Main Swap Card - More Compact */}
-      <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl blur-xl -z-10"></div>
-        
-        <div className="bg-gradient-to-br from-gray-900/95 to-gray-900/90 backdrop-blur-xl border border-gray-800/50 rounded-2xl p-4 shadow-2xl">
-          {/* Compact Header */}
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Swap
-            </h2>
-            <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-800/50 border border-gray-700/50 rounded-lg">
-              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-              <span className="text-xs text-gray-400">Base Sepolia</span>
+    <div className="relative">
+      {/* Global Soft Blur Wrapper */}
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] rounded-3xl" />
+      <div className="relative z-10 max-w-md mx-auto px-4 py-6">
+        {/* Main Swap Card */}
+        <div className="relative">
+          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-white">
+                Swap
+              </h2>
+              <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 backdrop-blur-md border border-white/10 rounded-lg">
+                <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                <span className="text-xs text-white/70">Base Sepolia</span>
+              </div>
             </div>
-          </div>
 
-          {/* From Token - More Compact */}
-          <div className="bg-gradient-to-br from-gray-800/90 to-gray-800/70 border border-gray-700/50 rounded-xl p-3 mb-2">
-            <div className="flex items-center justify-between mb-2">
+            {/* From Token */}
+            <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-xl p-3 mb-2">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-white/70">Pay</span>
+                  <div className={`px-2 py-0.5 rounded-md font-semibold text-white text-xs ${
+                    fromToken === 'TKA' 
+                      ? 'bg-white/20' 
+                      : 'bg-white/20'
+                  }`}>
+                    {fromToken}
+                  </div>
+                </div>
+                <span className="text-xs text-white/70">Balance: {fromBalance.toFixed(2)}</span>
+              </div>
+              
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  type="number"
+                  value={fromAmount}
+                  onChange={(e) => setFromAmount(e.target.value)}
+                  placeholder="0.0"
+                  className="flex-1 bg-transparent text-2xl font-bold outline-none text-white placeholder:text-white/30"
+                  disabled={txLoading || isLoading}
+                  step="any"
+                  min="0"
+                />
+              </div>
+              
+              {/* Quick Buttons */}
+              <div className="flex gap-1.5">
+                {[25, 50, 75, 100].map((percent) => (
+                  <button 
+                    key={percent}
+                    onClick={() => handleSetPercentage(percent / 100)}
+                    className="flex-1 px-2 py-1 text-xs font-medium text-white/70 bg-white/5 border border-white/10 rounded hover:bg-white/10 hover:text-white transition-all disabled:opacity-50"
+                    disabled={txLoading || isLoading || fromBalance <= 0}
+                  >
+                    {percent}%
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Swap Button - Centered */}
+            <div className="flex justify-center my-2">
+              <button
+                onClick={handleSwapTokens}
+                className="bg-white/10 backdrop-blur-md border border-white/10 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-white/15 transition-all disabled:opacity-50"
+                disabled={txLoading || isLoading}
+              >
+                <ArrowDownUp className="w-3 h-3 text-white/70 hover:text-white" />
+              </button>
+            </div>
+
+            {/* To Token */}
+            <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-xl p-3 mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-white/70">Receive</span>
+                  <div className={`px-2 py-0.5 rounded-md font-semibold text-white text-xs ${
+                    toToken === 'TKA' 
+                      ? 'bg-white/20' 
+                      : 'bg-white/20'
+                  }`}>
+                    {toToken}
+                  </div>
+                </div>
+                <span className="text-xs text-white/70">Balance: {toBalance.toFixed(2)}</span>
+              </div>
+              
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400">Pay</span>
-                <div className={`px-2 py-0.5 rounded-md font-semibold text-white text-xs ${
-                  fromToken === 'TKA' 
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700' 
-                    : 'bg-gradient-to-r from-purple-600 to-purple-700'
-                }`}>
-                  {fromToken}
+                <input
+                  type="text"
+                  value={isCalculating ? 'Calculating...' : toAmount}
+                  readOnly
+                  placeholder="0.0"
+                  className="flex-1 bg-transparent text-2xl font-bold outline-none text-white/70 placeholder:text-white/30"
+                />
+              </div>
+              
+              {error && (
+                <div className="mt-3 p-2 bg-red-500/20 backdrop-blur-md border border-red-400/30 rounded-lg">
+                  <div className="flex items-center gap-2 text-xs text-red-300">
+                    <Info className="w-3 h-3 flex-shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Swap Details */}
+            {fromAmount && parseFloat(fromAmount) > 0 && (
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-3 mb-4">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="text-xs text-white/70">Rate</div>
+                  <div className="text-xs font-medium text-white text-right">
+                    1 {fromToken} = {isCalculating ? '...' : rate} {toToken}
+                  </div>
+                  
+                  <div className="text-xs text-white/70">Impact</div>
+                  <div className={`text-xs font-medium text-right ${
+                    parseFloat(priceImpact) > 5 ? 'text-red-300' : 
+                    parseFloat(priceImpact) > 2 ? 'text-yellow-300' : 
+                    'text-emerald-300'
+                  }`}>
+                    {isCalculating ? '...' : `${priceImpact}%`}
+                  </div>
+                  
+                  <div className="text-xs text-white/70">Min Received</div>
+                  <div className="text-xs font-medium text-white text-right">
+                    {isCalculating ? '...' : minReceived} {toToken}
+                  </div>
+                  
+                  <div className="text-xs text-white/70">Slippage</div>
+                  <div className="flex items-center justify-end gap-1">
+                    <input
+                      type="number"
+                      value={slippage}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        if (value === '' || (parseFloat(value) >= 0.1 && parseFloat(value) <= 5)) {
+                          setSlippage(value)
+                        }
+                      }}
+                      className="w-12 bg-white/5 border border-white/10 rounded px-1.5 py-0.5 text-xs text-white text-center outline-none"
+                      min="0.1"
+                      max="5"
+                      step="0.1"
+                    />
+                    <span className="text-xs text-white/50">%</span>
+                  </div>
                 </div>
               </div>
-              <span className="text-xs text-gray-500">Balance: {fromBalance.toFixed(2)}</span>
-            </div>
-            
-            <div className="flex items-center gap-2 mb-2">
-              <input
-                type="number"
-                value={fromAmount}
-                onChange={(e) => setFromAmount(e.target.value)}
-                placeholder="0.0"
-                className="flex-1 bg-transparent text-2xl font-bold outline-none text-white placeholder:text-gray-600"
-                disabled={txLoading || isLoading}
-                step="any"
-                min="0"
-              />
-            </div>
-            
-            {/* Quick Buttons - More Compact */}
-            <div className="flex gap-1.5">
-              {[25, 50, 75, 100].map((percent) => (
-                <button 
-                  key={percent}
-                  onClick={() => handleSetPercentage(percent / 100)}
-                  className="flex-1 px-2 py-1 text-xs font-medium text-gray-300 bg-gray-700/50 border border-gray-600/50 rounded hover:bg-gray-600/50 hover:text-white transition-all disabled:opacity-50"
-                  disabled={txLoading || isLoading || fromBalance <= 0}
-                >
-                  {percent}%
-                </button>
-              ))}
-            </div>
-          </div>
+            )}
 
-          {/* Swap Button - Centered and Compact */}
-          <div className="flex justify-center my-2">
+            {/* Pool Stats */}
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-2 text-center">
+                <div className="text-xs text-white/70">TVL</div>
+                <div className="text-sm font-bold text-white">
+                  {isLoading ? '...' : `$${totalLiquidity}`}
+                </div>
+              </div>
+              
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-2 text-center">
+                <div className="text-xs text-white/70">Rate</div>
+                <div className="text-sm font-bold text-white">
+                  {isCalculating || isLoading ? '...' : rate}
+                </div>
+                <div className="text-xs text-white/50">{fromToken}/{toToken}</div>
+              </div>
+            </div>
+
+            {/* Swap Button */}
             <button
-              onClick={handleSwapTokens}
-              className="bg-gray-800 border border-gray-700 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-all disabled:opacity-50"
-              disabled={txLoading || isLoading}
+              onClick={handleSwap}
+              disabled={isSwapDisabled}
+              className="w-full px-4 py-3 bg-white/10 backdrop-blur-md border border-white/10 text-white font-semibold rounded-xl hover:bg-white/15 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              <ArrowDownUp className="w-3 h-3 text-gray-300" />
+              {txLoading || isLoading || isCalculating ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-sm">{getSwapButtonText()}</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-4 h-4" />
+                  <span className="text-sm">{getSwapButtonText()}</span>
+                </>
+              )}
             </button>
           </div>
-
-          {/* To Token - More Compact */}
-          <div className="bg-gradient-to-br from-gray-800/90 to-gray-800/70 border border-gray-700/50 rounded-xl p-3 mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400">Receive</span>
-                <div className={`px-2 py-0.5 rounded-md font-semibold text-white text-xs ${
-                  toToken === 'TKA' 
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700' 
-                    : 'bg-gradient-to-r from-purple-600 to-purple-700'
-                }`}>
-                  {toToken}
-                </div>
-              </div>
-              <span className="text-xs text-gray-500">Balance: {toBalance.toFixed(2)}</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={isCalculating ? 'Calculating...' : toAmount}
-                readOnly
-                placeholder="0.0"
-                className="flex-1 bg-transparent text-2xl font-bold outline-none text-gray-300 placeholder:text-gray-600"
-              />
-            </div>
-            
-            {error && (
-              <div className="mt-3 p-2 bg-red-900/20 border border-red-800/50 rounded-lg">
-                <div className="flex items-center gap-2 text-xs text-red-400">
-                  <Info className="w-3 h-3 flex-shrink-0" />
-                  <span>{error}</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Swap Details - Integrated into main card */}
-          {fromAmount && parseFloat(fromAmount) > 0 && (
-            <div className="bg-gradient-to-br from-gray-800/80 to-gray-800/60 border border-gray-700/50 rounded-xl p-3 mb-4">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="text-xs text-gray-400">Rate</div>
-                <div className="text-xs font-medium text-white text-right">
-                  1 {fromToken} = {isCalculating ? '...' : rate} {toToken}
-                </div>
-                
-                <div className="text-xs text-gray-400">Impact</div>
-                <div className={`text-xs font-medium text-right ${
-                  parseFloat(priceImpact) > 5 ? 'text-red-400' : 
-                  parseFloat(priceImpact) > 2 ? 'text-yellow-400' : 
-                  'text-emerald-400'
-                }`}>
-                  {isCalculating ? '...' : `${priceImpact}%`}
-                </div>
-                
-                <div className="text-xs text-gray-400">Min Received</div>
-                <div className="text-xs font-medium text-white text-right">
-                  {isCalculating ? '...' : minReceived} {toToken}
-                </div>
-                
-                <div className="text-xs text-gray-400">Slippage</div>
-                <div className="flex items-center justify-end gap-1">
-                  <input
-                    type="number"
-                    value={slippage}
-                    onChange={(e) => {
-                      const value = e.target.value
-                      if (value === '' || (parseFloat(value) >= 0.1 && parseFloat(value) <= 5)) {
-                        setSlippage(value)
-                      }
-                    }}
-                    className="w-12 bg-gray-700/50 border border-gray-600/50 rounded px-1.5 py-0.5 text-xs text-white text-center outline-none"
-                    min="0.1"
-                    max="5"
-                    step="0.1"
-                  />
-                  <span className="text-xs text-gray-400">%</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Pool Stats - Horizontal layout */}
-          <div className="grid grid-cols-2 gap-2 mb-4">
-            <div className="bg-gradient-to-br from-gray-800/80 to-gray-800/60 border border-gray-700/50 rounded-xl p-2 text-center">
-              <div className="text-xs text-gray-400">TVL</div>
-              <div className="text-sm font-bold text-white">
-                {isLoading ? '...' : `$${totalLiquidity}`}
-              </div>
-            </div>
-            
-            <div className="bg-gradient-to-br from-gray-800/80 to-gray-800/60 border border-gray-700/50 rounded-xl p-2 text-center">
-              <div className="text-xs text-gray-400">Rate</div>
-              <div className="text-sm font-bold text-white">
-                {isCalculating || isLoading ? '...' : rate}
-              </div>
-              <div className="text-xs text-gray-500">{fromToken}/{toToken}</div>
-            </div>
-          </div>
-
-          {/* Swap Button */}
-          <button
-            onClick={handleSwap}
-            disabled={isSwapDisabled}
-            className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {txLoading || isLoading || isCalculating ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-sm">{getSwapButtonText()}</span>
-              </>
-            ) : (
-              <>
-                <Zap className="w-4 h-4" />
-                <span className="text-sm">{getSwapButtonText()}</span>
-              </>
-            )}
-          </button>
         </div>
       </div>
     </div>
